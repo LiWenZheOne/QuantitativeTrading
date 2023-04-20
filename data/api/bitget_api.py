@@ -7,7 +7,9 @@ class BitgetAPI():
         self.base_url = "https://api.bitget.com"  # Bitget API的基础URL
 
     def get_ticker(self, symbol):
-        url = f"{self.base_url}/api/spot/v1/market/ticker?{symbol}"
+        # curl "https://api.bitget.com/api/mix/v1/market/ticker?symbol=BTCUSDT_UMCBL"
+
+        url = f"{self.base_url}/api/mix/v1/market/ticker?symbol={symbol}"
         response = requests.get(url)
         if response.status_code == 200:
             return response.json()
