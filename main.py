@@ -1,27 +1,57 @@
-from data.api.bitget_api import BitgetAPI
-from data.data_processing import DataProcessor
-from data.api.data_storage import save_historical_data_to_csv
-import datetime
+import requests
+import os
+import json
+
+# To set your environment variables in your terminal run the following line:
+# export 'BEARER_TOKEN'='<your_bearer_token>'
+bearer_token = os.environ.get("AAAAAAAAAAAAAAAAAAAAACR9mgEAAAAAxa5PMVui3CQD2hOFujrYWUML5Tw%3DhbgOt4D7uy2sUFW8mgrf3Vaz9aUlURYYsD70nZz8Ryij22bDzV")
+
+
+def create_url():
+    # Replace with user ID below
+    user_id = 2244994945
+    return "https://api.twitter.com/2/users/{}/tweets".format(user_id)
+
+
+def get_params():
+    # Tweet fields are adjustable.
+    # Options include:
+    # attachments, author_id, context_annotations,
+    # conversation_id, created_at, entities, geo, id,
+    # in_reply_to_user_id, lang, non_public_metrics, organic_metrics,
+    # possibly_sensitive, promoted_metrics, public_metrics, referenced_tweets,
+    # source, text, and withheld
+    return {"tweet.fields": "created_at"}
+
+
+def bearer_oauth(r):
+    """
+    Method required by bearer token authentication.
+    """
+
+    r.headers["Authorization"] = f"Bearer {bearer_token}"
+    r.headers["User-Agent"] = "v2UserTweetsPython"
+    return r
+
+
+def connect_to_endpoint(url, params):
+    response = requests.request("GET", url, auth=bearer_oauth, params=params)
+    print(response.status_code)
+    if response.status_code != 200:
+        raise Exception(
+            "Request returned an error: {} {}".format(
+                response.status_code, response.text
+            )
+        )
+    return response.json()
+
 
 def main():
-    # 创建BitgetAPI对象
-    api_key = "your_api_key"
-    secret_key = "your_secret_key"
-    api = BitgetAPI(api_key, secret_key)
+    url = create_url()
+    params = get_params()
+    json_response = connect_to_endpoint(url, params)
+    print(json.dumps(json_response, indent=4, sort_keys=True))
 
-    # 创建DataProcessor对象
-    processor = DataProcessor(api)
-
-    # 获取历史K线数据
-    symbol = "BTC_USDT"
-    interval = "1day"
-    start_time = datetime.datetime(2023, 1, 1)
-    end_time = datetime.datetime(2023, 4, 1)
-    data = processor.get_historical_data(symbol, interval, start_time, end_time)
-
-    # 将数据保存到CSV文件中
-    filename = "historical_data.csv"
-    save_historical_data_to_csv(data, filename)
 
 if __name__ == "__main__":
     main()
